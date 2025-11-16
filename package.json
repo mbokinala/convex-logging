@@ -10,7 +10,8 @@
     "dev:web": "pnpm --filter @repo/web dev",
     "build": "pnpm --filter \"./apps/*\" build",
     "build:api": "pnpm --filter @repo/api build",
-    "build:web": "pnpm --filter @repo/web build"
+    "build:web": "pnpm --filter @repo/web build",
+    "start:api": "pnpm --filter @repo/api start"
   },
   "keywords": [],
   "author": "",

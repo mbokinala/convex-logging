@@ -2,6 +2,7 @@
 import { createClient } from "@clickhouse/client"; // or '@clickhouse/client-web'
 import { type } from "arktype";
 import { Hono } from "hono";
+import { serve } from "@hono/node-server";
 import { FunctionExecutionEvent } from "@repo/types";
 
 const client = createClient({
@@ -78,7 +79,9 @@ app.get("/health", (c) => {
   return c.text("OK");
 });
 
-export default {
-  port: PORT,
+serve({
   fetch: app.fetch,
-};
+  port: Number(PORT),
+});
+
+console.log(`Server is running on http://localhost:${PORT}`);

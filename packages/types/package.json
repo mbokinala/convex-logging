@@ -2,12 +2,18 @@
   "name": "@repo/types",
   "version": "1.0.0",
   "private": true,
-  "main": "./index.ts",
-  "types": "./index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./index.ts"
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc"
   },
   "dependencies": {
     "arktype": "^2.1.26"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
   }
 }
