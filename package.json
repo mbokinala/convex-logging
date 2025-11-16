@@ -1,0 +1,18 @@
+{
+  "name": "convex-logging-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monorepo for Convex logging system",
+  "packageManager": "pnpm@10.5.0",
+  "scripts": {
+    "dev": "pnpm --parallel --filter \"./apps/*\" dev",
+    "dev:api": "pnpm --filter @repo/api dev",
+    "dev:web": "pnpm --filter @repo/web dev",
+    "build": "pnpm --filter \"./apps/*\" build",
+    "build:api": "pnpm --filter @repo/api build",
+    "build:web": "pnpm --filter @repo/web build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mv:*)",
+      "Bash(pnpm create:*)",
+      "Bash(pkill:*)",
+      "Bash(pnpm --filter @repo/types list:*)",
+      "Bash(cat:*)",
+      "Bash(pnpm --filter @repo/api list:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

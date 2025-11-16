@@ -1,0 +1,78 @@
+# Convex Logging Monorepo
+
+A pnpm monorepo containing a Hono API service and Next.js web app with shared arktype types.
+
+## Structure
+
+```
+.
+├── apps/
+│   ├── api/          # Hono service for ingesting Convex logs
+│   └── web/          # Next.js dashboard app
+├── packages/
+│   └── types/        # Shared arktype type definitions
+├── package.json
+└── pnpm-workspace.yaml
+```
+
+## Getting Started
+
+### Install Dependencies
+
+```bash
+pnpm install
+```
+
+### Development
+
+Run both apps in parallel:
+```bash
+pnpm dev
+```
+
+Run individual apps:
+```bash
+pnpm dev:api   # Run Hono API on port 3000
+pnpm dev:web   # Run Next.js app on port 3000
+```
+
+### Build
+
+Build all apps:
+```bash
+pnpm build
+```
+
+Build individual apps:
+```bash
+pnpm build:api
+pnpm build:web
+```
+
+## Packages
+
+### @repo/types
+
+Shared arktype type definitions used across the API and web app:
+- `BaseEvent`
+- `Function`
+- `VerificationEvent`
+- `ConsoleEvent`
+- `FunctionExecutionEvent`
+- `ConvexEvent`
+
+Both runtime validators and TypeScript types are exported.
+
+### @repo/api
+
+Hono-based API service that:
+- Ingests Convex function execution events
+- Validates events using arktype schemas
+- Stores data in ClickHouse
+
+### @repo/web
+
+Next.js dashboard application with:
+- TypeScript
+- Tailwind CSS
+- Shared types from `@repo/types`
