@@ -2,17 +2,17 @@
 
 import { createClient } from "@clickhouse/client";
 
+const clickHouseClient = createClient({
+  url: process.env.CLICKHOUSE_URL,
+  username: process.env.CLICKHOUSE_USERNAME || "default",
+  password: process.env.CLICKHOUSE_PASSWORD,
+});
+
 export async function getConvexFunctions(
   timeRange: "1m" | "1h" | "1d" | "all" | "custom" = "1h",
   customStart?: string,
   customEnd?: string
 ) {
-  const client = createClient({
-    url: "***REMOVED***",
-    username: "default",
-    password: "***REMOVED***",
-  });
-
   let whereClause: string;
   let bucketInterval: string;
   let bucketSeconds: number;
@@ -69,7 +69,7 @@ export async function getConvexFunctions(
     whereClause = `timestamp >= now() - INTERVAL ${intervalSeconds} SECOND`;
   }
 
-  const rows = await client.query({
+  const rows = await clickHouseClient.query({
     query: `SELECT
   function_type,
   toStartOfInterval(timestamp, INTERVAL ${bucketInterval}) AS time_bucket,
@@ -117,13 +117,7 @@ ORDER BY time_bucket;`,
 }
 
 export async function getFunctionList() {
-  const client = createClient({
-    url: "***REMOVED***",
-    username: "default",
-    password: "***REMOVED***",
-  });
-
-  const rows = await client.query({
+  const rows = await clickHouseClient.query({
     query:
       "SELECT DISTINCT function_path FROM function_execution ORDER BY function_path",
     format: "JSONEachRow",
@@ -139,12 +133,6 @@ export async function getFailureRate(
   customStart?: string,
   customEnd?: string
 ) {
-  const client = createClient({
-    url: "***REMOVED***",
-    username: "default",
-    password: "***REMOVED***",
-  });
-
   let whereClause: string;
   let bucketInterval: string;
 
@@ -187,7 +175,7 @@ export async function getFailureRate(
   }
 
   // First, get functions that have at least one failure in the time period
-  const functionsWithFailuresRows = await client.query({
+  const functionsWithFailuresRows = await clickHouseClient.query({
     query: `SELECT DISTINCT function_path
 FROM function_execution
 WHERE ${whereClause} AND status = 'failure'
@@ -203,7 +191,7 @@ ORDER BY function_path;`,
   }
 
   // Get failure rate data for those functions
-  const rows = await client.query({
+  const rows = await clickHouseClient.query({
     query: `SELECT
   function_path,
   toStartOfInterval(timestamp, INTERVAL ${bucketInterval}) AS time_bucket,
@@ -249,7 +237,7 @@ ORDER BY time_bucket, function_path;`,
   );
 
   // Calculate aggregate failure rates across the entire period
-  const aggregateRows = await client.query({
+  const aggregateRows = await clickHouseClient.query({
     query: `SELECT
   function_path,
   COUNT(*) AS total_count,
@@ -292,12 +280,6 @@ export async function getExecutionTime(
   customStart?: string,
   customEnd?: string
 ) {
-  const client = createClient({
-    url: "***REMOVED***",
-    username: "default",
-    password: "***REMOVED***",
-  });
-
   let whereClause: string;
   let bucketInterval: string;
 
@@ -340,7 +322,7 @@ export async function getExecutionTime(
   }
 
   // Get execution time data for all functions
-  const rows = await client.query({
+  const rows = await clickHouseClient.query({
     query: `SELECT
   function_path,
   toStartOfInterval(timestamp, INTERVAL ${bucketInterval}) AS time_bucket,
@@ -386,7 +368,7 @@ ORDER BY time_bucket, function_path;`,
   );
 
   // Calculate aggregate execution times across the entire period
-  const aggregateRows = await client.query({
+  const aggregateRows = await clickHouseClient.query({
     query: `SELECT
   function_path,
   AVG(execution_time_ms) AS avg_execution_time,
@@ -422,8 +404,8 @@ ORDER BY function_path;`,
       date: bucket.date,
     };
     for (const func of topSlowFunctions) {
-      if (bucket[func] !== undefined) {
-        filtered[func] = bucket[func];
+      if ((bucket as Record<string, number | string>)[func] !== undefined) {
+        filtered[func] = (bucket as Record<string, number | string>)[func];
       }
     }
     return filtered;
