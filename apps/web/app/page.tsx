@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { FunctionList } from "@/components/FunctionList";
 import { QPSChart, TimeRange, CustomTimeRange } from "@/components/QPSChart";
-import { getConvexFunctions } from "@/app/lib/api";
+import { FailureRateChart } from "@/components/FailureRateChart";
+import { getConvexFunctions, getFailureRate } from "@/app/lib/api";
 
 export default function Home() {
   const [timeRange, setTimeRange] = useState<TimeRange>("1h");
@@ -21,23 +22,59 @@ export default function Home() {
       }[]
     | undefined
   >(undefined);
+  const [failureRateData, setFailureRateData] = useState<
+    | {
+        date: string;
+        [functionPath: string]: number | string;
+      }[]
+    | undefined
+  >(undefined);
+  const [failureFunctions, setFailureFunctions] = useState<string[] | undefined>(undefined);
+  const [failureAggregates, setFailureAggregates] = useState<
+    | {
+        functionPath: string;
+        totalCount: number;
+        failureCount: number;
+        failureRate: number;
+      }[]
+    | undefined
+  >(undefined);
 
   useEffect(() => {
     const fetchData = async () => {
       setData(undefined);
+      setFailureRateData(undefined);
+      setFailureFunctions(undefined);
+      setFailureAggregates(undefined);
       if (timeRange === "custom") {
         // Only fetch if both start and end times are set
         if (customTimeRange.start && customTimeRange.end) {
-          const result = await getConvexFunctions(
-            timeRange,
-            customTimeRange.start,
-            customTimeRange.end
-          );
-          setData(result);
+          const [qpsResult, failureResult] = await Promise.all([
+            getConvexFunctions(
+              timeRange,
+              customTimeRange.start,
+              customTimeRange.end
+            ),
+            getFailureRate(
+              timeRange,
+              customTimeRange.start,
+              customTimeRange.end
+            ),
+          ]);
+          setData(qpsResult);
+          setFailureRateData(failureResult.data);
+          setFailureFunctions(failureResult.functions);
+          setFailureAggregates(failureResult.aggregates);
         }
       } else {
-        const result = await getConvexFunctions(timeRange);
-        setData(result);
+        const [qpsResult, failureResult] = await Promise.all([
+          getConvexFunctions(timeRange),
+          getFailureRate(timeRange),
+        ]);
+        setData(qpsResult);
+        setFailureRateData(failureResult.data);
+        setFailureFunctions(failureResult.functions);
+        setFailureAggregates(failureResult.aggregates);
       }
     };
 
@@ -53,6 +90,15 @@ export default function Home() {
       <FunctionList />
       <QPSChart
         data={data}
+        timeRange={timeRange}
+        onTimeRangeChange={setTimeRange}
+        customTimeRange={customTimeRange}
+        onCustomTimeRangeChange={setCustomTimeRange}
+      />
+      <FailureRateChart
+        data={failureRateData}
+        functions={failureFunctions}
+        aggregates={failureAggregates}
         timeRange={timeRange}
         onTimeRangeChange={setTimeRange}
         customTimeRange={customTimeRange}
