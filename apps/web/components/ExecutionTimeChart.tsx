@@ -18,16 +18,9 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export const description = "Function failure rate chart";
+export const description = "Function execution time chart";
 
 export type TimeRange = "1m" | "1h" | "1d" | "all" | "custom";
 
@@ -46,14 +39,13 @@ const chartColors = [
   "hsl(var(--destructive))",
 ];
 
-export interface FailureAggregate {
+export interface ExecutionTimeAggregate {
   functionPath: string;
+  avgExecutionTime: number;
   totalCount: number;
-  failureCount: number;
-  failureRate: number;
 }
 
-export function FailureRateChart({
+export function ExecutionTimeChart({
   data,
   functions,
   aggregates,
@@ -64,7 +56,7 @@ export function FailureRateChart({
 }: {
   data?: Array<{ date: string; [functionPath: string]: number | string }>;
   functions?: string[];
-  aggregates?: FailureAggregate[];
+  aggregates?: ExecutionTimeAggregate[];
   timeRange: TimeRange;
   onTimeRangeChange: (value: TimeRange) => void;
   customTimeRange?: CustomTimeRange;
@@ -90,9 +82,9 @@ export function FailureRateChart({
     <Card className="pt-0">
       <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
         <div className="grid flex-1 gap-1">
-          <CardTitle>Function Failure Rate</CardTitle>
+          <CardTitle>Function Execution Time</CardTitle>
           <CardDescription>
-            Percentage of function executions that failed.
+            Average execution time in milliseconds.
           </CardDescription>
         </div>
       </CardHeader>
@@ -101,7 +93,7 @@ export function FailureRateChart({
           <Skeleton className="aspect-auto h-[350px] w-full" />
         ) : data.length === 0 || functions.length === 0 ? (
           <div className="flex items-center justify-center h-[350px] text-muted-foreground">
-            No failures in selected period
+            No data in selected period
           </div>
         ) : (
           <ChartContainer
@@ -131,8 +123,7 @@ export function FailureRateChart({
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
-                tickFormatter={(value) => `${value}%`}
-                domain={[0, 100]}
+                tickFormatter={(value) => `${value}ms`}
               />
               <ChartTooltip
                 cursor={false}
@@ -151,7 +142,7 @@ export function FailureRateChart({
                     }}
                     formatter={(value, name) => {
                       const label = chartConfig[name as string]?.label || name;
-                      return [`${Number(value).toFixed(2)}% `, label];
+                      return [`${Number(value).toFixed(2)}ms `, label];
                     }}
                     indicator="dot"
                   />
@@ -184,13 +175,12 @@ export function FailureRateChart({
                 <tr className="border-b">
                   <th className="text-left font-medium py-3 px-4">Function</th>
                   <th className="text-right font-medium py-3 px-4">Total Executions</th>
-                  <th className="text-right font-medium py-3 px-4">Failures</th>
-                  <th className="text-right font-medium py-3 px-4">Failure Rate</th>
+                  <th className="text-right font-medium py-3 px-4">Avg Execution Time</th>
                 </tr>
               </thead>
               <tbody>
                 {aggregates
-                  .sort((a, b) => b.failureRate - a.failureRate)
+                  .sort((a, b) => b.avgExecutionTime - a.avgExecutionTime)
                   .slice(0, isTableExpanded ? undefined : 3)
                   .map((aggregate) => {
                     const displayName = aggregate.functionPath.includes(':')
@@ -202,11 +192,8 @@ export function FailureRateChart({
                         <td className="py-3 px-4 text-right text-muted-foreground">
                           {aggregate.totalCount.toLocaleString()}
                         </td>
-                        <td className="py-3 px-4 text-right text-muted-foreground">
-                          {aggregate.failureCount.toLocaleString()}
-                        </td>
                         <td className="py-3 px-4 text-right font-medium">
-                          {aggregate.failureRate.toFixed(2)}%
+                          {aggregate.avgExecutionTime.toFixed(2)}ms
                         </td>
                       </tr>
                     );

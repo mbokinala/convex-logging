@@ -82,72 +82,7 @@ export function QPSChart({
             Function executions per second, broken down by function type.
           </CardDescription>
         </div>
-        <Select value={timeRange} onValueChange={onTimeRangeChange}>
-          <SelectTrigger
-            className="hidden w-[160px] rounded-lg sm:ml-auto sm:flex"
-            aria-label="Select a value"
-          >
-            <SelectValue placeholder="Last 1 hour" />
-          </SelectTrigger>
-          <SelectContent className="rounded-xl">
-            <SelectItem value="1m" className="rounded-lg">
-              Last 1 minute
-            </SelectItem>
-            <SelectItem value="1h" className="rounded-lg">
-              Last 1 hour
-            </SelectItem>
-            <SelectItem value="1d" className="rounded-lg">
-              Last 1 day
-            </SelectItem>
-            <SelectItem value="all" className="rounded-lg">
-              All time
-            </SelectItem>
-            <SelectItem value="custom" className="rounded-lg">
-              Custom period
-            </SelectItem>
-          </SelectContent>
-        </Select>
       </CardHeader>
-      {timeRange === "custom" && (
-        <div className="border-b px-6 py-4">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-4">
-            <div className="flex flex-col gap-2 flex-1">
-              <label htmlFor="start-time" className="text-sm font-medium">
-                Start Time
-              </label>
-              <input
-                id="start-time"
-                type="datetime-local"
-                value={customTimeRange?.start || ""}
-                onChange={(e) =>
-                  onCustomTimeRangeChange?.({
-                    start: e.target.value,
-                    end: customTimeRange?.end || "",
-                  })
-                }
-                className="rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
-            </div>
-            <div className="flex flex-col gap-2 flex-1">
-              <label htmlFor="end-time" className="text-sm font-medium">
-                End Time
-              </label>
-              <input
-                id="end-time"
-                type="datetime-local"
-                value={customTimeRange?.end || ""}
-                onChange={(e) =>
-                  onCustomTimeRangeChange?.({
-                    start: customTimeRange?.start || "",
-                    end: e.target.value,
-                  })
-                }
-                className="rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
-            </div>
-          </div>
-        </div>
-      )}
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         {!data ? (
           <Skeleton className="aspect-auto h-[250px] w-full" />

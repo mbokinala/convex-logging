@@ -274,3 +274,147 @@ ORDER BY function_path;`,
     aggregates,
   };
 }
+
+export async function getExecutionTime(
+  timeRange: "1m" | "1h" | "1d" | "all" | "custom" = "1h",
+  customStart?: string,
+  customEnd?: string
+) {
+  const client = createClient({
+    url: "***REMOVED***",
+    username: "default",
+    password: "***REMOVED***",
+  });
+
+  let whereClause: string;
+  let bucketInterval: string;
+
+  if (timeRange === "custom" && customStart && customEnd) {
+    const startDate = new Date(customStart).toISOString();
+    const endDate = new Date(customEnd).toISOString();
+    whereClause = `timestamp >= '${startDate}' AND timestamp <= '${endDate}'`;
+
+    const durationMs = new Date(customEnd).getTime() - new Date(customStart).getTime();
+    const durationHours = durationMs / (1000 * 60 * 60);
+
+    if (durationHours <= 1) {
+      bucketInterval = "5 SECOND";
+    } else if (durationHours <= 24) {
+      bucketInterval = "1 MINUTE";
+    } else if (durationHours <= 168) {
+      bucketInterval = "10 MINUTE";
+    } else {
+      bucketInterval = "1 HOUR";
+    }
+  } else if (timeRange === "all") {
+    whereClause = "1 = 1";
+    bucketInterval = "1 HOUR";
+  } else {
+    let intervalSeconds = 3600;
+    if (timeRange === "1m") {
+      intervalSeconds = 60;
+      bucketInterval = "1 SECOND";
+    } else if (timeRange === "1h") {
+      intervalSeconds = 3600;
+      bucketInterval = "5 SECOND";
+    } else if (timeRange === "1d") {
+      intervalSeconds = 86400;
+      bucketInterval = "1 MINUTE";
+    } else {
+      bucketInterval = "5 SECOND";
+    }
+    whereClause = `timestamp >= now() - INTERVAL ${intervalSeconds} SECOND`;
+  }
+
+  // Get execution time data for all functions
+  const rows = await client.query({
+    query: `SELECT
+  function_path,
+  toStartOfInterval(timestamp, INTERVAL ${bucketInterval}) AS time_bucket,
+  AVG(execution_time_ms) AS avg_execution_time
+FROM function_execution
+WHERE ${whereClause}
+GROUP BY function_path, time_bucket
+ORDER BY time_bucket, function_path;`,
+    format: "JSONEachRow",
+  });
+
+  const queryData: {
+    function_path: string;
+    time_bucket: string;
+    avg_execution_time: string;
+  }[] = await rows.json();
+
+  if (queryData.length === 0) {
+    return { data: [], functions: [], aggregates: [] };
+  }
+
+  // Aggregate data by time bucket
+  const aggregatedData: Map<
+    string,
+    { [functionPath: string]: number }
+  > = new Map();
+
+  const functionSet = new Set<string>();
+
+  for (const d of queryData) {
+    functionSet.add(d.function_path);
+    if (!aggregatedData.has(d.time_bucket)) {
+      aggregatedData.set(d.time_bucket, {});
+    }
+    aggregatedData.get(d.time_bucket)![d.function_path] = parseFloat(d.avg_execution_time);
+  }
+
+  const data = Array.from(aggregatedData.entries()).map(([timestamp, functionData]) => ({
+    date: new Date(timestamp).toISOString(),
+    ...functionData,
+  }));
+
+  // Calculate aggregate execution times across the entire period
+  const aggregateRows = await client.query({
+    query: `SELECT
+  function_path,
+  AVG(execution_time_ms) AS avg_execution_time,
+  COUNT(*) AS total_count
+FROM function_execution
+WHERE ${whereClause}
+GROUP BY function_path
+ORDER BY function_path;`,
+    format: "JSONEachRow",
+  });
+
+  const aggregateData: {
+    function_path: string;
+    avg_execution_time: string;
+    total_count: string;
+  }[] = await aggregateRows.json();
+
+  const aggregates = aggregateData.map(d => ({
+    functionPath: d.function_path,
+    avgExecutionTime: parseFloat(d.avg_execution_time),
+    totalCount: parseInt(d.total_count),
+  }));
+
+  // Get top 10 slowest functions for the chart
+  const topSlowFunctions = aggregates
+    .sort((a, b) => b.avgExecutionTime - a.avgExecutionTime)
+    .slice(0, 10)
+    .map(a => a.functionPath);
+
+  // Filter chart data to only include top 10 slowest functions
+  const filteredData = data.map(bucket => {
+    const filtered: { date: string; [key: string]: number | string } = { date: bucket.date };
+    for (const func of topSlowFunctions) {
+      if (bucket[func] !== undefined) {
+        filtered[func] = bucket[func];
+      }
+    }
+    return filtered;
+  });
+
+  return {
+    data: filteredData,
+    functions: topSlowFunctions,
+    aggregates,
+  };
+}
