@@ -6,12 +6,12 @@
   "packageManager": "pnpm@10.5.0",
   "scripts": {
     "dev": "pnpm --parallel --filter \"./apps/*\" dev",
-    "dev:api": "pnpm --filter @repo/api dev",
-    "dev:web": "pnpm --filter @repo/web dev",
+    "dev:ingest-server": "pnpm --filter @repo/ingest-server dev",
+    "dev:dashboard": "pnpm --filter @repo/dashboard dev",
     "build": "pnpm --filter \"./apps/*\" build",
-    "build:api": "pnpm --filter @repo/api build",
-    "build:web": "pnpm --filter @repo/web build",
-    "start:api": "pnpm --filter @repo/api start"
+    "build:ingest-server": "pnpm --filter @repo/ingest-server build",
+    "build:dashboard": "pnpm --filter @repo/dashboard build",
+    "start:ingest-server": "pnpm --filter @repo/ingest-server start"
   },
   "keywords": [],
   "author": "",

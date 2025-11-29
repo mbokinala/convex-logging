@@ -7,8 +7,8 @@ A pnpm monorepo containing a Hono API service and Next.js web app with shared ar
 ```
 .
 ├── apps/
-│   ├── api/          # Hono service for ingesting Convex logs
-│   └── web/          # Next.js dashboard app
+│   ├── ingest-server/          # Hono service for ingesting Convex logs
+│   └── dashboard/          # Next.js dashboard app
 ├── packages/
 │   └── types/        # Shared arktype type definitions
 ├── package.json
@@ -32,8 +32,8 @@ pnpm dev
 
 Run individual apps:
 ```bash
-pnpm dev:api   # Run Hono API on port 3000
-pnpm dev:web   # Run Next.js app on port 3000
+pnpm dev:ingest-server   # Run Hono API on port 3000
+pnpm dev:dashboard   # Run Next.js app on port 3000
 ```
 
 ### Build
@@ -45,8 +45,8 @@ pnpm build
 
 Build individual apps:
 ```bash
-pnpm build:api
-pnpm build:web
+pnpm build:ingest-server
+pnpm build:dashboard
 ```
 
 ## Packages
@@ -63,14 +63,14 @@ Shared arktype type definitions used across the API and web app:
 
 Both runtime validators and TypeScript types are exported.
 
-### @repo/api
+### @repo/ingest-server
 
 Hono-based API service that:
 - Ingests Convex function execution events
 - Validates events using arktype schemas
 - Stores data in ClickHouse
 
-### @repo/web
+### @repo/dashboard
 
 Next.js dashboard application with:
 - TypeScript

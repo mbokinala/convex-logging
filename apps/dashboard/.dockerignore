@@ -2,13 +2,13 @@
 node_modules/
 .git/
 .github/
-apps/api/
+apps/ingest-server/
 
 # App-specific ignores
-apps/web/.next/
-apps/web/node_modules/
-apps/web/.env
-apps/web/.env.*
+apps/dashboard/.next/
+apps/dashboard/node_modules/
+apps/dashboard/.env
+apps/dashboard/.env.*
 
 # Package ignores
 packages/types/node_modules/

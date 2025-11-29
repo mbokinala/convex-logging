@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'apps/web/**'
+      - 'apps/dashboard/**'
       - 'packages/types/**'
       - 'packages/types/**'
       - 'pnpm-lock.yaml'
@@ -51,7 +51,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./apps/web/Containerfile
+          file: ./apps/dashboard/Containerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

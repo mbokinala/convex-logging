@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'apps/api/**'
+      - 'apps/ingest-server/**'
       - 'packages/types/**'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
@@ -50,7 +50,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./apps/api/Dockerfile
+          file: ./apps/ingest-server/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

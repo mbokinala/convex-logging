@@ -5,7 +5,7 @@ WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/types/package.json ./packages/types/package.json
-COPY apps/web/package.json ./apps/web/package.json
+COPY apps/dashboard/package.json ./apps/dashboard/package.json
 
 RUN pnpm install --frozen-lockfile
 
@@ -17,13 +17,13 @@ WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
+COPY --from=deps /app/apps/dashboard/node_modules ./apps/dashboard/node_modules
 COPY --from=deps /app/packages/types/node_modules ./packages/types/node_modules
 
 COPY packages/types ./packages/types
-COPY apps/web ./apps/web
+COPY apps/dashboard ./apps/dashboard
 
-WORKDIR /app/apps/web
+WORKDIR /app/apps/dashboard
 
 RUN rm -f .env .env.*
 
@@ -37,13 +37,13 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-COPY --from=builder /app/apps/web/next.config.* ./apps/web/
-COPY --from=builder /app/apps/web/package.json ./apps/web/
-COPY --from=builder /app/apps/web/.next ./apps/web/.next
-# COPY --from=builder /app/apps/web/public ./apps/web/public
+COPY --from=builder /app/apps/dashboard/next.config.* ./apps/dashboard/
+COPY --from=builder /app/apps/dashboard/package.json ./apps/dashboard/
+COPY --from=builder /app/apps/dashboard/.next ./apps/dashboard/.next
+# COPY --from=builder /app/apps/dashboard/public ./apps/dashboard/public
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
+COPY --from=deps /app/apps/dashboard/node_modules ./apps/dashboard/node_modules
 COPY --from=builder /app/packages/types ./packages/types
 
 COPY --from=deps /app/package.json ./package.json
@@ -51,6 +51,6 @@ COPY --from=deps /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 
 EXPOSE ${PORT:-3000}
 
-WORKDIR /app/apps/web
+WORKDIR /app/apps/dashboard
 
 CMD ["pnpm", "start"]
