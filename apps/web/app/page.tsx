@@ -234,8 +234,8 @@ export default function Home() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="col-span-1">
+      <div className="columns-2 gap-4 [&>*]:mb-4">
+        <div className="break-inside-avoid">
           <QPSChart
             data={data}
             timeRange={timeRange}
@@ -244,7 +244,7 @@ export default function Home() {
             onCustomTimeRangeChange={setCustomTimeRange}
           />
         </div>
-        <div className="col-span-1">
+        <div className="break-inside-avoid">
           <FailureRateChart
             data={failureRateData}
             functions={failureFunctions}
@@ -255,7 +255,7 @@ export default function Home() {
             onCustomTimeRangeChange={setCustomTimeRange}
           />
         </div>
-        <div className="col-span-1">
+        <div className="break-inside-avoid">
           <ExecutionTimeChart
             data={executionTimeData}
             functions={executionTimeFunctions}

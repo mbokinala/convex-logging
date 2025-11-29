@@ -17,13 +17,6 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const description = "An interactive line chart";
@@ -56,10 +49,6 @@ const chartConfig = {
 
 export function QPSChart({
   data,
-  timeRange,
-  onTimeRangeChange,
-  customTimeRange,
-  onCustomTimeRangeChange,
 }: {
   data?: {
     date: string;
@@ -77,7 +66,7 @@ export function QPSChart({
     <Card className="pt-0">
       <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
         <div className="grid flex-1 gap-1">
-          <CardTitle>Function Executions / Second</CardTitle>
+          <CardTitle>Function Execution QPS</CardTitle>
           <CardDescription>
             Function executions per second, broken down by function type.
           </CardDescription>
