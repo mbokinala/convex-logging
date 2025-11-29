@@ -8,7 +8,9 @@ import {
 } from "@/app/lib/api";
 import { ExecutionTimeChart } from "@/components/ExecutionTimeChart";
 import { FailureRateChart } from "@/components/FailureRateChart";
+import { LoginForm } from "@/components/LoginForm";
 import { CustomTimeRange, QPSChart, TimeRange } from "@/components/QPSChart";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -19,6 +21,24 @@ import {
 import { useEffect, useState } from "react";
 
 export default function Home() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    const auth = localStorage.getItem("dashboard_authenticated");
+    setIsAuthenticated(auth === "true");
+    setIsCheckingAuth(false);
+  }, []);
+
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("dashboard_authenticated");
+    setIsAuthenticated(false);
+  };
+
   const [timeRange, setTimeRange] = useState<TimeRange>("1h");
   const [customTimeRange, setCustomTimeRange] = useState<CustomTimeRange>({
     start: "",
@@ -142,15 +162,35 @@ export default function Home() {
     fetchData();
   }, [timeRange, customTimeRange]);
 
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <LoginForm onLogin={handleLogin} />;
+  }
+
   return (
     <div className="min-h-screen p-8">
-      <h1 className="text-4xl font-bold mb-4">Convex Logging Dashboard</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-4xl font-bold">Convex Logging Dashboard</h1>
+        <Button variant="outline" onClick={handleLogout}>
+          Logout
+        </Button>
+      </div>
 
       {/* Filter Controls */}
       <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium">Time Period</label>
-          <Select value={timeRange} onValueChange={(value) => setTimeRange(value as TimeRange)}>
+          <Select
+            value={timeRange}
+            onValueChange={(value) => setTimeRange(value as TimeRange)}
+          >
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Select time range" />
             </SelectTrigger>
