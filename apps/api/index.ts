@@ -1,14 +1,14 @@
 // server.ts
 import { createClient } from "@clickhouse/client"; // or '@clickhouse/client-web'
-import { type } from "arktype";
-import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { FunctionExecutionEvent } from "@repo/types";
+import { type } from "arktype";
+import { Hono } from "hono";
 
 const client = createClient({
-  url: "***REMOVED***",
-  username: "default",
-  password: "***REMOVED***",
+  url: process.env.CLICKHOUSE_URL,
+  username: process.env.CLICKHOUSE_USERNAME || "default",
+  password: process.env.CLICKHOUSE_PASSWORD || "",
 });
 
 const PORT = process.env.PORT || 3000;
