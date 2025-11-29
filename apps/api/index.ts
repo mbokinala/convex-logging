@@ -3,8 +3,8 @@ import { createClient } from "@clickhouse/client"; // or '@clickhouse/client-web
 import { serve } from "@hono/node-server";
 import { FunctionExecutionEvent } from "@repo/types";
 import { type } from "arktype";
-import { Hono } from "hono";
 import { readFileSync } from "fs";
+import { Hono } from "hono";
 import { join } from "path";
 
 const client = createClient({
@@ -98,5 +98,5 @@ initializeDatabase().then(() => {
     port: Number(PORT),
   });
 
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Ingest server webhook is live at /ingest`);
 });
