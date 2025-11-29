@@ -11,7 +11,7 @@ on:
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
       - 'package.json'
-      - '.github/workflows/build-api.yml'
+      - '.github/workflows/build-dashboard.yml'
 
 env:
   REGISTRY: ghcr.io

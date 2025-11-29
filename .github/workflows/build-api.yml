@@ -1,4 +1,4 @@
-name: Build and Push API to GHCR
+name: Build and push ingest-server
 
 on:
   push:
@@ -14,7 +14,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/api
+  IMAGE_NAME: ${{ github.repository }}/ingest-server
 
 jobs:
   build-and-push:
