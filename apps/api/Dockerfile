@@ -34,6 +34,8 @@ WORKDIR /app
 # Copy only the bundled output (tsup bundles all dependencies)
 COPY --from=build /app/apps/api/dist ./apps/api/dist
 
+COPY apps/api/setup.sql ./apps/api/dist/setup.sql
+
 EXPOSE 3000
 
 CMD ["node", "apps/api/dist/index.js"]
