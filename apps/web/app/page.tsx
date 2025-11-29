@@ -16,7 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
 
 export default function Home() {
@@ -168,7 +167,7 @@ export default function Home() {
           </Select>
         </div>
 
-        <div className="flex flex-col gap-2">
+        {/* <div className="flex flex-col gap-2">
           <label className="text-sm font-medium">Function</label>
           {!functionsList ? (
             <Skeleton className="w-[300px] h-10" />
@@ -190,7 +189,7 @@ export default function Home() {
               </SelectContent>
             </Select>
           )}
-        </div>
+        </div> */}
       </div>
 
       {/* Custom Time Range Inputs */}
