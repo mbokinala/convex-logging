@@ -4,6 +4,8 @@ import { serve } from "@hono/node-server";
 import { FunctionExecutionEvent } from "@repo/types";
 import { type } from "arktype";
 import { Hono } from "hono";
+import { readFileSync } from "fs";
+import { join } from "path";
 
 const client = createClient({
   url: process.env.CLICKHOUSE_URL,
@@ -79,9 +81,22 @@ app.get("/health", (c) => {
   return c.text("OK");
 });
 
-serve({
-  fetch: app.fetch,
-  port: Number(PORT),
-});
+async function initializeDatabase() {
+  try {
+    const setupSQL = readFileSync(join(__dirname, "setup.sql"), "utf-8");
+    await client.exec({ query: setupSQL });
+    console.log("Database setup completed successfully");
+  } catch (error) {
+    console.error("Failed to run setup.sql:", error);
+    process.exit(1);
+  }
+}
 
-console.log(`Server is running on http://localhost:${PORT}`);
+initializeDatabase().then(() => {
+  serve({
+    fetch: app.fetch,
+    port: Number(PORT),
+  });
+
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
