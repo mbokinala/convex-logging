@@ -12,6 +12,6 @@ CREATE TABLE IF NOT EXISTS default.function_execution
     `scheduler_job_id` Nullable(String),
     `execution_time_ms` Int32
 )
-ENGINE = SharedMergeTree('/clickhouse/tables/{uuid}/{shard}', '{replica}')
+ENGINE = MergeTree
 ORDER BY (function_path, timestamp, status)
 SETTINGS index_granularity = 8192
