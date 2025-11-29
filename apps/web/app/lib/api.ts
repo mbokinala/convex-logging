@@ -24,7 +24,8 @@ export async function getConvexFunctions(
     whereClause = `timestamp >= '${startDate}' AND timestamp <= '${endDate}'`;
 
     // Calculate duration to determine bucket size
-    const durationMs = new Date(customEnd).getTime() - new Date(customStart).getTime();
+    const durationMs =
+      new Date(customEnd).getTime() - new Date(customStart).getTime();
     const durationHours = durationMs / (1000 * 60 * 60);
 
     if (durationHours <= 1) {
@@ -33,7 +34,8 @@ export async function getConvexFunctions(
     } else if (durationHours <= 24) {
       bucketInterval = "1 MINUTE"; // 1440 max points
       bucketSeconds = 60;
-    } else if (durationHours <= 168) { // 1 week
+    } else if (durationHours <= 168) {
+      // 1 week
       bucketInterval = "10 MINUTE"; // ~1000 max points
       bucketSeconds = 600;
     } else {
@@ -100,7 +102,8 @@ ORDER BY time_bucket;`,
       });
     }
     // Divide by bucket size to get executions per second
-    aggregatedData.get(d.time_bucket)![d.function_type] += parseInt(d.record_count) / bucketSeconds;
+    aggregatedData.get(d.time_bucket)![d.function_type] +=
+      parseInt(d.record_count) / bucketSeconds;
   }
 
   return Array.from(aggregatedData.entries()).map(([timestamp, data]) => {
@@ -121,7 +124,8 @@ export async function getFunctionList() {
   });
 
   const rows = await client.query({
-    query: "SELECT DISTINCT function_path FROM function_execution ORDER BY function_path",
+    query:
+      "SELECT DISTINCT function_path FROM function_execution ORDER BY function_path",
     format: "JSONEachRow",
   });
 
@@ -149,7 +153,8 @@ export async function getFailureRate(
     const endDate = new Date(customEnd).toISOString();
     whereClause = `timestamp >= '${startDate}' AND timestamp <= '${endDate}'`;
 
-    const durationMs = new Date(customEnd).getTime() - new Date(customStart).getTime();
+    const durationMs =
+      new Date(customEnd).getTime() - new Date(customStart).getTime();
     const durationHours = durationMs / (1000 * 60 * 60);
 
     if (durationHours <= 1) {
@@ -190,7 +195,8 @@ ORDER BY function_path;`,
     format: "JSONEachRow",
   });
 
-  const functionsWithFailures: { function_path: string }[] = await functionsWithFailuresRows.json();
+  const functionsWithFailures: { function_path: string }[] =
+    await functionsWithFailuresRows.json();
 
   if (functionsWithFailures.length === 0) {
     return { data: [], functions: [] };
@@ -205,7 +211,9 @@ ORDER BY function_path;`,
   SUM(CASE WHEN status = 'failure' THEN 1 ELSE 0 END) AS failure_count
 FROM function_execution
 WHERE ${whereClause}
-  AND function_path IN (${functionsWithFailures.map(f => `'${f.function_path}'`).join(', ')})
+  AND function_path IN (${functionsWithFailures
+    .map((f) => `'${f.function_path}'`)
+    .join(", ")})
 GROUP BY function_path, time_bucket
 ORDER BY time_bucket, function_path;`,
     format: "JSONEachRow",
@@ -219,25 +227,26 @@ ORDER BY time_bucket, function_path;`,
   }[] = await rows.json();
 
   // Aggregate data by time bucket
-  const aggregatedData: Map<
-    string,
-    { [functionPath: string]: number }
-  > = new Map();
+  const aggregatedData: Map<string, { [functionPath: string]: number }> =
+    new Map();
 
   for (const d of queryData) {
     if (!aggregatedData.has(d.time_bucket)) {
       aggregatedData.set(d.time_bucket, {});
     }
-    const failureRate = parseInt(d.total_count) > 0
-      ? (parseInt(d.failure_count) / parseInt(d.total_count)) * 100
-      : 0;
+    const failureRate =
+      parseInt(d.total_count) > 0
+        ? (parseInt(d.failure_count) / parseInt(d.total_count)) * 100
+        : 0;
     aggregatedData.get(d.time_bucket)![d.function_path] = failureRate;
   }
 
-  const data = Array.from(aggregatedData.entries()).map(([timestamp, functionData]) => ({
-    date: new Date(timestamp).toISOString(),
-    ...functionData,
-  }));
+  const data = Array.from(aggregatedData.entries()).map(
+    ([timestamp, functionData]) => ({
+      date: new Date(timestamp).toISOString(),
+      ...functionData,
+    })
+  );
 
   // Calculate aggregate failure rates across the entire period
   const aggregateRows = await client.query({
@@ -247,7 +256,9 @@ ORDER BY time_bucket, function_path;`,
   SUM(CASE WHEN status = 'failure' THEN 1 ELSE 0 END) AS failure_count
 FROM function_execution
 WHERE ${whereClause}
-  AND function_path IN (${functionsWithFailures.map(f => `'${f.function_path}'`).join(', ')})
+  AND function_path IN (${functionsWithFailures
+    .map((f) => `'${f.function_path}'`)
+    .join(", ")})
 GROUP BY function_path
 ORDER BY function_path;`,
     format: "JSONEachRow",
@@ -259,18 +270,19 @@ ORDER BY function_path;`,
     failure_count: string;
   }[] = await aggregateRows.json();
 
-  const aggregates = aggregateData.map(d => ({
+  const aggregates = aggregateData.map((d) => ({
     functionPath: d.function_path,
     totalCount: parseInt(d.total_count),
     failureCount: parseInt(d.failure_count),
-    failureRate: parseInt(d.total_count) > 0
-      ? (parseInt(d.failure_count) / parseInt(d.total_count)) * 100
-      : 0,
+    failureRate:
+      parseInt(d.total_count) > 0
+        ? (parseInt(d.failure_count) / parseInt(d.total_count)) * 100
+        : 0,
   }));
 
   return {
     data,
-    functions: functionsWithFailures.map(f => f.function_path),
+    functions: functionsWithFailures.map((f) => f.function_path),
     aggregates,
   };
 }
@@ -294,7 +306,8 @@ export async function getExecutionTime(
     const endDate = new Date(customEnd).toISOString();
     whereClause = `timestamp >= '${startDate}' AND timestamp <= '${endDate}'`;
 
-    const durationMs = new Date(customEnd).getTime() - new Date(customStart).getTime();
+    const durationMs =
+      new Date(customEnd).getTime() - new Date(customStart).getTime();
     const durationHours = durationMs / (1000 * 60 * 60);
 
     if (durationHours <= 1) {
@@ -350,10 +363,8 @@ ORDER BY time_bucket, function_path;`,
   }
 
   // Aggregate data by time bucket
-  const aggregatedData: Map<
-    string,
-    { [functionPath: string]: number }
-  > = new Map();
+  const aggregatedData: Map<string, { [functionPath: string]: number }> =
+    new Map();
 
   const functionSet = new Set<string>();
 
@@ -362,13 +373,17 @@ ORDER BY time_bucket, function_path;`,
     if (!aggregatedData.has(d.time_bucket)) {
       aggregatedData.set(d.time_bucket, {});
     }
-    aggregatedData.get(d.time_bucket)![d.function_path] = parseFloat(d.avg_execution_time);
+    aggregatedData.get(d.time_bucket)![d.function_path] = parseFloat(
+      d.avg_execution_time
+    );
   }
 
-  const data = Array.from(aggregatedData.entries()).map(([timestamp, functionData]) => ({
-    date: new Date(timestamp).toISOString(),
-    ...functionData,
-  }));
+  const data = Array.from(aggregatedData.entries()).map(
+    ([timestamp, functionData]) => ({
+      date: new Date(timestamp).toISOString(),
+      ...functionData,
+    })
+  );
 
   // Calculate aggregate execution times across the entire period
   const aggregateRows = await client.query({
@@ -389,7 +404,7 @@ ORDER BY function_path;`,
     total_count: string;
   }[] = await aggregateRows.json();
 
-  const aggregates = aggregateData.map(d => ({
+  const aggregates = aggregateData.map((d) => ({
     functionPath: d.function_path,
     avgExecutionTime: parseFloat(d.avg_execution_time),
     totalCount: parseInt(d.total_count),
@@ -399,11 +414,13 @@ ORDER BY function_path;`,
   const topSlowFunctions = aggregates
     .sort((a, b) => b.avgExecutionTime - a.avgExecutionTime)
     .slice(0, 10)
-    .map(a => a.functionPath);
+    .map((a) => a.functionPath);
 
   // Filter chart data to only include top 10 slowest functions
-  const filteredData = data.map(bucket => {
-    const filtered: { date: string; [key: string]: number | string } = { date: bucket.date };
+  const filteredData = data.map((bucket) => {
+    const filtered: { date: string; [key: string]: number | string } = {
+      date: bucket.date,
+    };
     for (const func of topSlowFunctions) {
       if (bucket[func] !== undefined) {
         filtered[func] = bucket[func];
