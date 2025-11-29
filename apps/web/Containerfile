@@ -1,0 +1,56 @@
+FROM node:20-alpine AS deps
+RUN corepack enable
+
+WORKDIR /app
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/types/package.json ./packages/types/package.json
+COPY apps/web/package.json ./apps/web/package.json
+
+RUN pnpm install --frozen-lockfile
+
+FROM node:20-alpine AS builder
+RUN corepack enable
+
+WORKDIR /app
+
+ENV NEXT_TELEMETRY_DISABLED=1
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
+COPY --from=deps /app/packages/types/node_modules ./packages/types/node_modules
+
+COPY packages/types ./packages/types
+COPY apps/web ./apps/web
+
+WORKDIR /app/apps/web
+
+RUN rm -f .env .env.*
+
+RUN pnpm build
+
+FROM node:20-alpine as runner
+RUN corepack enable
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+COPY --from=builder /app/apps/web/next.config.* ./apps/web/
+COPY --from=builder /app/apps/web/package.json ./apps/web/
+COPY --from=builder /app/apps/web/.next ./apps/web/.next
+# COPY --from=builder /app/apps/web/public ./apps/web/public
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
+COPY --from=builder /app/packages/types ./packages/types
+
+COPY --from=deps /app/package.json ./package.json
+COPY --from=deps /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+
+EXPOSE ${PORT:-3000}
+
+WORKDIR /app/apps/web
+
+CMD ["pnpm", "start"]

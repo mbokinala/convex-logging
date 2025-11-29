@@ -1,0 +1,14 @@
+# When using root build context, ignore these at root level
+node_modules/
+.git/
+.github/
+apps/api/
+
+# App-specific ignores
+apps/web/.next/
+apps/web/node_modules/
+apps/web/.env
+apps/web/.env.*
+
+# Package ignores
+packages/types/node_modules/

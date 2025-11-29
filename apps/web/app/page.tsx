@@ -145,15 +145,12 @@ export default function Home() {
   return (
     <div className="min-h-screen p-8">
       <h1 className="text-4xl font-bold mb-4">Convex Logging Dashboard</h1>
-      <p className="text-gray-600 mb-6">
-        This Next.js app shares types with the Hono API using arktype.
-      </p>
 
       {/* Filter Controls */}
       <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium">Time Period</label>
-          <Select value={timeRange} onValueChange={setTimeRange}>
+          <Select value={timeRange} onValueChange={(value) => setTimeRange(value as TimeRange)}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Select time range" />
             </SelectTrigger>
