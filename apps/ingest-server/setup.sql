@@ -1,6 +1,3 @@
-SET allow_experimental_full_text_index = true;
-
-
 CREATE TABLE IF NOT EXISTS default.function_execution
 (
     `function_type` String,
@@ -17,7 +14,7 @@ CREATE TABLE IF NOT EXISTS default.function_execution
 )
 ENGINE = MergeTree
 ORDER BY (function_path, timestamp, status)
-SETTINGS index_granularity = 8192
+SETTINGS index_granularity = 8192;
 
 CREATE TABLE IF NOT EXISTS default.console_log
 (

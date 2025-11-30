@@ -28,7 +28,7 @@ export const ConsoleEvent = BaseEvent.and({
   log_level: "'DEBUG' | 'INFO' | 'LOG' | 'WARN' | 'ERROR'",
   message: "string",
   is_truncated: "boolean",
-  "system_code?": "string",
+  "system_code?": "string | null",
 });
 
 export const FunctionExecutionEvent = BaseEvent.and({
