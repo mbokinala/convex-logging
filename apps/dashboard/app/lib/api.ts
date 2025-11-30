@@ -417,3 +417,77 @@ ORDER BY function_path;`,
     aggregates,
   };
 }
+
+export async function getConsoleLogs(
+  timeRange: "1m" | "1h" | "1d" | "all" | "custom" = "1h",
+  customStart?: string,
+  customEnd?: string,
+  functionPath?: string,
+  logLevel?: string,
+  limit: number = 1000
+) {
+  let whereClause: string;
+
+  if (timeRange === "custom" && customStart && customEnd) {
+    const startDate = new Date(customStart).toISOString();
+    const endDate = new Date(customEnd).toISOString();
+    whereClause = `timestamp >= '${startDate}' AND timestamp <= '${endDate}'`;
+  } else if (timeRange === "all") {
+    whereClause = "1 = 1";
+  } else {
+    let intervalSeconds = 3600;
+    if (timeRange === "1m") {
+      intervalSeconds = 60;
+    } else if (timeRange === "1h") {
+      intervalSeconds = 3600;
+    } else if (timeRange === "1d") {
+      intervalSeconds = 86400;
+    }
+    whereClause = `timestamp >= now() - INTERVAL ${intervalSeconds} SECOND`;
+  }
+
+  // Add function filter if specified
+  if (functionPath && functionPath !== "all") {
+    whereClause += ` AND function_path = '${functionPath}'`;
+  }
+
+  // Add log level filter if specified
+  if (logLevel && logLevel !== "all") {
+    whereClause += ` AND log_level = '${logLevel}'`;
+  }
+
+  const rows = await clickHouseClient.query({
+    query: `SELECT
+  function_type,
+  function_path,
+  function_cached,
+  request_id,
+  timestamp,
+  log_level,
+  message,
+  is_truncated,
+  system_code
+FROM console_log
+WHERE ${whereClause}
+ORDER BY timestamp DESC
+LIMIT ${limit};`,
+    format: "JSONEachRow",
+  });
+
+  const data: {
+    function_type: string;
+    function_path: string;
+    function_cached: boolean;
+    request_id: string;
+    timestamp: string;
+    log_level: string;
+    message: string;
+    is_truncated: boolean;
+    system_code: string;
+  }[] = await rows.json();
+
+  return data.map((d) => ({
+    ...d,
+    timestamp: new Date(d.timestamp).toISOString(),
+  }));
+}

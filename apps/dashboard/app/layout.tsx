@@ -1,3 +1,4 @@
+import { LayoutWrapper } from "@/components/LayoutWrapper";
 import type { Metadata } from "next";
 import "./globals.css";
 
@@ -13,7 +14,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark font-sans">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <LayoutWrapper>{children}</LayoutWrapper>
+      </body>
     </html>
   );
 }

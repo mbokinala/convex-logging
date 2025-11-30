@@ -175,9 +175,9 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen p-8">
+    <div className="h-full p-8">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-4xl font-bold">Convex Logging Dashboard</h1>
+        <h1 className="text-3xl font-bold">Analytics</h1>
         <Button variant="outline" onClick={handleLogout}>
           Logout
         </Button>
