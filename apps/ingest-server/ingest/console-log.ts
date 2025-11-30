@@ -35,7 +35,7 @@ export async function ingestConsoleLogs(events: any[]) {
         function_path: e.function.path,
         function_cached: e.function.cached,
         request_id: e.function.request_id,
-        timestamp: Math.round(e.timestamp / 1000),
+        timestamp: e.timestamp,
         log_level: e.log_level,
         message: e.message,
         is_truncated: e.is_truncated,

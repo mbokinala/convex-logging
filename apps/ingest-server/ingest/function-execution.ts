@@ -35,7 +35,7 @@ export async function ingestFunctionExecutionEvents(events: any[]) {
         function_path: e.function.path,
         function_cached: e.function.cached,
         request_id: e.function.request_id,
-        timestamp: Math.round(e.timestamp / 1000),
+        timestamp: e.timestamp,
         status: e.status,
         error_message: e.error_message,
         mutation_queue_length: e.mutation_queue_length,

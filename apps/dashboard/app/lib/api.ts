@@ -22,7 +22,7 @@ export async function getConvexFunctions(
     // Use custom date range
     const startDate = new Date(customStart).toISOString();
     const endDate = new Date(customEnd).toISOString();
-    whereClause = "timestamp >= {startDate:DateTime} AND timestamp <= {endDate:DateTime}";
+    whereClause = "timestamp >= {startDate:DateTime64(3)} AND timestamp <= {endDate:DateTime64(3)}";
     params.startDate = startDate;
     params.endDate = endDate;
 
@@ -144,7 +144,7 @@ export async function getFailureRate(
   if (timeRange === "custom" && customStart && customEnd) {
     const startDate = new Date(customStart).toISOString();
     const endDate = new Date(customEnd).toISOString();
-    whereClause = "timestamp >= {startDate:DateTime} AND timestamp <= {endDate:DateTime}";
+    whereClause = "timestamp >= {startDate:DateTime64(3)} AND timestamp <= {endDate:DateTime64(3)}";
     params.startDate = startDate;
     params.endDate = endDate;
 
@@ -296,7 +296,7 @@ export async function getExecutionTime(
   if (timeRange === "custom" && customStart && customEnd) {
     const startDate = new Date(customStart).toISOString();
     const endDate = new Date(customEnd).toISOString();
-    whereClause = "timestamp >= {startDate:DateTime} AND timestamp <= {endDate:DateTime}";
+    whereClause = "timestamp >= {startDate:DateTime64(3)} AND timestamp <= {endDate:DateTime64(3)}";
     params.startDate = startDate;
     params.endDate = endDate;
 
@@ -448,8 +448,8 @@ export async function getConsoleLogs(
   if (timeRange === "custom" && customStart && customEnd) {
     const startDate = new Date(customStart).toISOString();
     const endDate = new Date(customEnd).toISOString();
-    whereClauses.push("timestamp >= {startDate:DateTime}");
-    whereClauses.push("timestamp <= {endDate:DateTime}");
+    whereClauses.push("timestamp >= {startDate:DateTime64(3)}");
+    whereClauses.push("timestamp <= {endDate:DateTime64(3)}");
     params.startDate = startDate;
     params.endDate = endDate;
   } else if (timeRange !== "all") {
