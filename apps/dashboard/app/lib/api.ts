@@ -16,12 +16,15 @@ export async function getConvexFunctions(
   let whereClause: string;
   let bucketInterval: string;
   let bucketSeconds: number;
+  const params: Record<string, string> = {};
 
   if (timeRange === "custom" && customStart && customEnd) {
     // Use custom date range
     const startDate = new Date(customStart).toISOString();
     const endDate = new Date(customEnd).toISOString();
-    whereClause = `timestamp >= '${startDate}' AND timestamp <= '${endDate}'`;
+    whereClause = "timestamp >= {startDate:DateTime} AND timestamp <= {endDate:DateTime}";
+    params.startDate = startDate;
+    params.endDate = endDate;
 
     // Calculate duration to determine bucket size
     const durationMs =
@@ -78,6 +81,7 @@ FROM function_execution
 WHERE ${whereClause}
 GROUP BY function_type, time_bucket
 ORDER BY time_bucket;`,
+    query_params: Object.keys(params).length > 0 ? params : undefined,
     format: "JSONEachRow",
   });
 
@@ -135,11 +139,14 @@ export async function getFailureRate(
 ) {
   let whereClause: string;
   let bucketInterval: string;
+  const params: Record<string, string | string[]> = {};
 
   if (timeRange === "custom" && customStart && customEnd) {
     const startDate = new Date(customStart).toISOString();
     const endDate = new Date(customEnd).toISOString();
-    whereClause = `timestamp >= '${startDate}' AND timestamp <= '${endDate}'`;
+    whereClause = "timestamp >= {startDate:DateTime} AND timestamp <= {endDate:DateTime}";
+    params.startDate = startDate;
+    params.endDate = endDate;
 
     const durationMs =
       new Date(customEnd).getTime() - new Date(customStart).getTime();
@@ -180,6 +187,7 @@ export async function getFailureRate(
 FROM function_execution
 WHERE ${whereClause} AND status = 'failure'
 ORDER BY function_path;`,
+    query_params: Object.keys(params).length > 0 ? params : undefined,
     format: "JSONEachRow",
   });
 
@@ -187,8 +195,11 @@ ORDER BY function_path;`,
     await functionsWithFailuresRows.json();
 
   if (functionsWithFailures.length === 0) {
-    return { data: [], functions: [] };
+    return { data: [], functions: [], aggregates: [] };
   }
+
+  // Add function paths to params for IN clause
+  params.functionPaths = functionsWithFailures.map((f) => f.function_path);
 
   // Get failure rate data for those functions
   const rows = await clickHouseClient.query({
@@ -199,11 +210,10 @@ ORDER BY function_path;`,
   SUM(CASE WHEN status = 'failure' THEN 1 ELSE 0 END) AS failure_count
 FROM function_execution
 WHERE ${whereClause}
-  AND function_path IN (${functionsWithFailures
-    .map((f) => `'${f.function_path}'`)
-    .join(", ")})
+  AND function_path IN {functionPaths:Array(String)}
 GROUP BY function_path, time_bucket
 ORDER BY time_bucket, function_path;`,
+    query_params: params,
     format: "JSONEachRow",
   });
 
@@ -244,11 +254,10 @@ ORDER BY time_bucket, function_path;`,
   SUM(CASE WHEN status = 'failure' THEN 1 ELSE 0 END) AS failure_count
 FROM function_execution
 WHERE ${whereClause}
-  AND function_path IN (${functionsWithFailures
-    .map((f) => `'${f.function_path}'`)
-    .join(", ")})
+  AND function_path IN {functionPaths:Array(String)}
 GROUP BY function_path
 ORDER BY function_path;`,
+    query_params: params,
     format: "JSONEachRow",
   });
 
@@ -282,11 +291,14 @@ export async function getExecutionTime(
 ) {
   let whereClause: string;
   let bucketInterval: string;
+  const params: Record<string, string> = {};
 
   if (timeRange === "custom" && customStart && customEnd) {
     const startDate = new Date(customStart).toISOString();
     const endDate = new Date(customEnd).toISOString();
-    whereClause = `timestamp >= '${startDate}' AND timestamp <= '${endDate}'`;
+    whereClause = "timestamp >= {startDate:DateTime} AND timestamp <= {endDate:DateTime}";
+    params.startDate = startDate;
+    params.endDate = endDate;
 
     const durationMs =
       new Date(customEnd).getTime() - new Date(customStart).getTime();
@@ -331,6 +343,7 @@ FROM function_execution
 WHERE ${whereClause}
 GROUP BY function_path, time_bucket
 ORDER BY time_bucket, function_path;`,
+    query_params: Object.keys(params).length > 0 ? params : undefined,
     format: "JSONEachRow",
   });
 
@@ -377,6 +390,7 @@ FROM function_execution
 WHERE ${whereClause}
 GROUP BY function_path
 ORDER BY function_path;`,
+    query_params: Object.keys(params).length > 0 ? params : undefined,
     format: "JSONEachRow",
   });
 
@@ -424,17 +438,21 @@ export async function getConsoleLogs(
   customEnd?: string,
   functionPath?: string,
   logLevel?: string,
+  searchQuery?: string,
   limit: number = 1000
 ) {
-  let whereClause: string;
+  const whereClauses: string[] = [];
+  const params: Record<string, string | number> = {};
 
+  // Time range filter
   if (timeRange === "custom" && customStart && customEnd) {
     const startDate = new Date(customStart).toISOString();
     const endDate = new Date(customEnd).toISOString();
-    whereClause = `timestamp >= '${startDate}' AND timestamp <= '${endDate}'`;
-  } else if (timeRange === "all") {
-    whereClause = "1 = 1";
-  } else {
+    whereClauses.push("timestamp >= {startDate:DateTime}");
+    whereClauses.push("timestamp <= {endDate:DateTime}");
+    params.startDate = startDate;
+    params.endDate = endDate;
+  } else if (timeRange !== "all") {
     let intervalSeconds = 3600;
     if (timeRange === "1m") {
       intervalSeconds = 60;
@@ -443,18 +461,31 @@ export async function getConsoleLogs(
     } else if (timeRange === "1d") {
       intervalSeconds = 86400;
     }
-    whereClause = `timestamp >= now() - INTERVAL ${intervalSeconds} SECOND`;
+    whereClauses.push(`timestamp >= now() - INTERVAL ${intervalSeconds} SECOND`);
   }
 
   // Add function filter if specified
   if (functionPath && functionPath !== "all") {
-    whereClause += ` AND function_path = '${functionPath}'`;
+    whereClauses.push("function_path = {functionPath:String}");
+    params.functionPath = functionPath;
   }
 
   // Add log level filter if specified
   if (logLevel && logLevel !== "all") {
-    whereClause += ` AND log_level = '${logLevel}'`;
+    whereClauses.push("log_level = {logLevel:String}");
+    params.logLevel = logLevel;
   }
+
+  // Add search filter if specified
+  if (searchQuery && searchQuery.trim() !== "") {
+    whereClauses.push("positionCaseInsensitive(message, {searchQuery:String}) > 0");
+    params.searchQuery = searchQuery.trim();
+  }
+
+  const whereClause = whereClauses.length > 0 ? whereClauses.join(" AND ") : "1 = 1";
+
+  // Validate and sanitize limit
+  const safeLimit = Math.min(Math.max(1, Math.floor(limit)), 10000);
 
   const rows = await clickHouseClient.query({
     query: `SELECT
@@ -470,7 +501,11 @@ export async function getConsoleLogs(
 FROM console_log
 WHERE ${whereClause}
 ORDER BY timestamp DESC
-LIMIT ${limit};`,
+LIMIT {limit:UInt32}`,
+    query_params: params.startDate || params.functionPath || params.logLevel || params.searchQuery ? {
+      ...params,
+      limit: safeLimit,
+    } : { limit: safeLimit },
     format: "JSONEachRow",
   });
 

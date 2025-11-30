@@ -2,7 +2,9 @@
 
 import { getConsoleLogs, getFunctionList } from "@/app/lib/api";
 import { LoginForm } from "@/components/LoginForm";
+import { CustomTimeRange, TimeRange } from "@/components/QPSChart";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -10,8 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Search } from "lucide-react";
 import { useEffect, useState } from "react";
-import { CustomTimeRange, TimeRange } from "@/components/QPSChart";
 
 type ConsoleLog = {
   function_type: string;
@@ -39,11 +41,6 @@ export default function LogsPage() {
     setIsAuthenticated(true);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("dashboard_authenticated");
-    setIsAuthenticated(false);
-  };
-
   const [timeRange, setTimeRange] = useState<TimeRange>("1h");
   const [customTimeRange, setCustomTimeRange] = useState<CustomTimeRange>({
     start: "",
@@ -51,15 +48,24 @@ export default function LogsPage() {
   });
   const [selectedFunction, setSelectedFunction] = useState<string>("all");
   const [selectedLogLevel, setSelectedLogLevel] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [functionsList, setFunctionsList] = useState<string[] | undefined>(
     undefined
   );
   const [logs, setLogs] = useState<ConsoleLog[] | undefined>(undefined);
   const [limit, setLimit] = useState<number>(1000);
-  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
-  const [requestLogs, setRequestLogs] = useState<ConsoleLog[] | undefined>(undefined);
-  const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
-  const [expandedTableMessages, setExpandedTableMessages] = useState<Set<string>>(new Set());
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
+    null
+  );
+  const [requestLogs, setRequestLogs] = useState<ConsoleLog[] | undefined>(
+    undefined
+  );
+  const [expandedMessages, setExpandedMessages] = useState<Set<string>>(
+    new Set()
+  );
+  const [expandedTableMessages, setExpandedTableMessages] = useState<
+    Set<string>
+  >(new Set());
 
   const toggleMessageExpansion = (logId: string) => {
     setExpandedMessages((prev) => {
@@ -104,6 +110,7 @@ export default function LogsPage() {
             customTimeRange.end,
             selectedFunction,
             selectedLogLevel,
+            searchQuery,
             limit
           );
           setLogs(logsResult);
@@ -115,6 +122,7 @@ export default function LogsPage() {
           undefined,
           selectedFunction,
           selectedLogLevel,
+          searchQuery,
           limit
         );
         setLogs(logsResult);
@@ -122,7 +130,14 @@ export default function LogsPage() {
     };
 
     fetchLogs();
-  }, [timeRange, customTimeRange, selectedFunction, selectedLogLevel, limit]);
+  }, [
+    timeRange,
+    customTimeRange,
+    selectedFunction,
+    selectedLogLevel,
+    searchQuery,
+    limit,
+  ]);
 
   useEffect(() => {
     const fetchRequestLogs = async () => {
@@ -139,10 +154,13 @@ export default function LogsPage() {
         undefined,
         undefined,
         undefined,
+        undefined,
         10000
       );
 
-      const filtered = result.filter(log => log.request_id === selectedRequestId);
+      const filtered = result.filter(
+        (log) => log.request_id === selectedRequestId
+      );
       setRequestLogs(filtered);
       setExpandedMessages(new Set());
     };
@@ -179,15 +197,24 @@ export default function LogsPage() {
 
   return (
     <div className="h-full p-8">
-      <div className="flex justify-between items-center mb-4">
+      <div className="mb-4">
         <h1 className="text-3xl font-bold">Console Logs</h1>
-        <Button variant="outline" onClick={handleLogout}>
-          Logout
-        </Button>
       </div>
 
       {/* Filter Controls */}
       <div className="mb-6 flex flex-col gap-4">
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search messages..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">Time Period</label>
@@ -210,7 +237,10 @@ export default function LogsPage() {
 
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">Function</label>
-            <Select value={selectedFunction} onValueChange={setSelectedFunction}>
+            <Select
+              value={selectedFunction}
+              onValueChange={setSelectedFunction}
+            >
               <SelectTrigger className="w-[300px] font-mono">
                 <SelectValue placeholder="Select a function" />
               </SelectTrigger>
@@ -227,7 +257,10 @@ export default function LogsPage() {
 
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">Log Level</label>
-            <Select value={selectedLogLevel} onValueChange={setSelectedLogLevel}>
+            <Select
+              value={selectedLogLevel}
+              onValueChange={setSelectedLogLevel}
+            >
               <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder="Select log level" />
               </SelectTrigger>
@@ -329,13 +362,19 @@ export default function LogsPage() {
             <tbody>
               {!logs ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                  <td
+                    colSpan={5}
+                    className="px-4 py-8 text-center text-muted-foreground"
+                  >
                     Loading logs...
                   </td>
                 </tr>
               ) : logs.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                  <td
+                    colSpan={5}
+                    className="px-4 py-8 text-center text-muted-foreground"
+                  >
                     No logs found
                   </td>
                 </tr>
@@ -344,9 +383,10 @@ export default function LogsPage() {
                   const logId = `table-${log.request_id}-${index}`;
                   const isExpanded = expandedTableMessages.has(logId);
                   const isLong = log.message.length > 200;
-                  const displayMessage = isExpanded || !isLong
-                    ? log.message
-                    : log.message.substring(0, 200) + "...";
+                  const displayMessage =
+                    isExpanded || !isLong
+                      ? log.message
+                      : log.message.substring(0, 200) + "...";
 
                   return (
                     <tr
@@ -370,7 +410,9 @@ export default function LogsPage() {
                         <div className="break-words font-mono">
                           {displayMessage}
                           {log.is_truncated && (
-                            <span className="text-yellow-500 ml-2">(truncated)</span>
+                            <span className="text-yellow-500 ml-2">
+                              (truncated)
+                            </span>
                           )}
                           {isLong && (
                             <button
@@ -462,15 +504,13 @@ export default function LogsPage() {
                       const logId = `${log.request_id}-${index}`;
                       const isExpanded = expandedMessages.has(logId);
                       const isLong = log.message.length > 200;
-                      const displayMessage = isExpanded || !isLong
-                        ? log.message
-                        : log.message.substring(0, 200) + "...";
+                      const displayMessage =
+                        isExpanded || !isLong
+                          ? log.message
+                          : log.message.substring(0, 200) + "...";
 
                       return (
-                        <tr
-                          key={logId}
-                          className="border-t hover:bg-muted/50"
-                        >
+                        <tr key={logId} className="border-t hover:bg-muted/50">
                           <td className="px-4 py-3 text-sm font-mono whitespace-nowrap align-top w-[200px]">
                             {new Date(log.timestamp).toLocaleString()}
                           </td>
@@ -485,7 +525,9 @@ export default function LogsPage() {
                             <div className="break-words">
                               {displayMessage}
                               {log.is_truncated && (
-                                <span className="text-yellow-500 ml-2">(truncated)</span>
+                                <span className="text-yellow-500 ml-2">
+                                  (truncated)
+                                </span>
                               )}
                               {isLong && (
                                 <button

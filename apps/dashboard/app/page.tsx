@@ -34,11 +34,6 @@ export default function Home() {
     setIsAuthenticated(true);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("dashboard_authenticated");
-    setIsAuthenticated(false);
-  };
-
   const [timeRange, setTimeRange] = useState<TimeRange>("1h");
   const [customTimeRange, setCustomTimeRange] = useState<CustomTimeRange>({
     start: "",
@@ -176,11 +171,8 @@ export default function Home() {
 
   return (
     <div className="h-full p-8">
-      <div className="flex justify-between items-center mb-4">
+      <div className="mb-4">
         <h1 className="text-3xl font-bold">Analytics</h1>
-        <Button variant="outline" onClick={handleLogout}>
-          Logout
-        </Button>
       </div>
 
       {/* Filter Controls */}

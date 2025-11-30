@@ -178,14 +178,14 @@ export function FailureRateChart({
       </CardContent>
       {aggregates && aggregates.length > 0 && (
         <CardContent className="px-6 pb-6">
-          <div className="border rounded-lg overflow-hidden">
+          <div className="border rounded-lg overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-muted/50">
                 <tr className="border-b">
-                  <th className="text-left font-medium py-3 px-4">Function</th>
-                  <th className="text-right font-medium py-3 px-4">Total Executions</th>
-                  <th className="text-right font-medium py-3 px-4">Failures</th>
-                  <th className="text-right font-medium py-3 px-4">Failure Rate</th>
+                  <th className="text-left font-medium py-3 px-4 whitespace-nowrap">Function</th>
+                  <th className="text-right font-medium py-3 px-4 whitespace-nowrap">Total Executions</th>
+                  <th className="text-right font-medium py-3 px-4 whitespace-nowrap">Failures</th>
+                  <th className="text-right font-medium py-3 px-4 whitespace-nowrap">Failure Rate</th>
                 </tr>
               </thead>
               <tbody>
@@ -198,14 +198,14 @@ export function FailureRateChart({
                       : aggregate.functionPath;
                     return (
                       <tr key={aggregate.functionPath} className="border-b last:border-0">
-                        <td className="py-3 px-4 font-medium">{displayName}</td>
-                        <td className="py-3 px-4 text-right text-muted-foreground">
+                        <td className="py-3 px-4 font-medium whitespace-nowrap">{displayName}</td>
+                        <td className="py-3 px-4 text-right text-muted-foreground whitespace-nowrap">
                           {aggregate.totalCount.toLocaleString()}
                         </td>
-                        <td className="py-3 px-4 text-right text-muted-foreground">
+                        <td className="py-3 px-4 text-right text-muted-foreground whitespace-nowrap">
                           {aggregate.failureCount.toLocaleString()}
                         </td>
-                        <td className="py-3 px-4 text-right font-medium">
+                        <td className="py-3 px-4 text-right font-medium whitespace-nowrap">
                           {aggregate.failureRate.toFixed(2)}%
                         </td>
                       </tr>
