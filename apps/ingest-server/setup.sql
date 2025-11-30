@@ -10,15 +10,15 @@ CREATE TABLE IF NOT EXISTS default.function_execution
     `mutation_queue_length` Nullable(Int32),
     `mutation_retry_count` Nullable(Int32),
     `scheduler_job_id` Nullable(String),
-    `execution_time_ms` Int32
-    `usage_database_read_bytes` Int64,
-    `usage_database_write_bytes` Int64,
-    `usage_database_read_documents` Int64,
-    `usage_file_storage_read_bytes` Int64,
-    `usage_file_storage_write_bytes` Int64,
-    `usage_vector_storage_read_bytes` Int64,
-    `usage_vector_storage_write_bytes` Int64,
-    `usage_memory_used_mb` Int64,
+    `execution_time_ms` Int32,
+    `usage_database_read_bytes` Int32,
+    `usage_database_write_bytes` Int32,
+    `usage_database_read_documents` Int32,
+    `usage_file_storage_read_bytes` Int32,
+    `usage_file_storage_write_bytes` Int32,
+    `usage_vector_storage_read_bytes` Int32,
+    `usage_vector_storage_write_bytes` Int32,
+    `usage_memory_used_mb` Int32,
 )
 ENGINE = MergeTree
 ORDER BY (function_path, timestamp, status)
