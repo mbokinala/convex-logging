@@ -42,6 +42,16 @@ export const FunctionExecutionEvent = BaseEvent.and({
   "scheduler_info?": type({
     job_id: "string",
   }).or("null"),
+  usage: type({
+    database_read_bytes: "number",
+    database_write_bytes: "number",
+    database_read_documents: "number",
+    file_storage_read_bytes: "number",
+    file_storage_write_bytes: "number",
+    vector_storage_read_bytes: "number",
+    vector_storage_write_bytes: "number",
+    memory_used_mb: "number",
+  }),
 });
 
 export const ConvexEvent = type.or(
