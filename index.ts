@@ -1,8 +1,16 @@
+import postgres from "postgres";
 import { loadConfig } from "./src/config";
 import { handleWebhook } from "./src/webhook/handler";
 import { PostgresEventStorage } from "./src/storage/postgres/storage";
+import { runMigrations } from "./src/storage/postgres/migrate";
 
 const config = loadConfig();
+
+const sql = postgres(config.databaseUrl);
+await runMigrations(sql);
+console.log("Migrations complete");
+await sql.end();
+
 const storage = new PostgresEventStorage(config.databaseUrl);
 
 const server = Bun.serve({
