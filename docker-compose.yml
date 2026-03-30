@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: convex
+      POSTGRES_PASSWORD: convex
+      POSTGRES_DB: convex_logs
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgres://convex:convex@db:5432/convex_logs
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET}
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
