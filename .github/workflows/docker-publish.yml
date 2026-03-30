@@ -3,8 +3,14 @@ name: Build and Publish Docker Image
 on:
   push:
     branches: [main]
+    paths:
+      - 'log-webhook-handler/**'
+      - '.github/workflows/docker-publish.yml'
   pull_request:
     branches: [main]
+    paths:
+      - 'log-webhook-handler/**'
+      - '.github/workflows/docker-publish.yml'
 
 env:
   REGISTRY: ghcr.io
@@ -37,7 +43,7 @@ jobs:
 
       - uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ./log-webhook-handler
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
