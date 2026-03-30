@@ -73,6 +73,9 @@ export class PostgresEventStorage implements EventStorage {
           case "storage_api_bandwidth":
             await this.insertStorageApiBandwidth(tx, topicEvents as StorageApiBandwidthEvent[]);
             break;
+          default:
+            console.warn(`Unknown topic encountered in storage: ${topic}, skipping ${topicEvents.length} event(s)`);
+            break;
         }
       }
     });
