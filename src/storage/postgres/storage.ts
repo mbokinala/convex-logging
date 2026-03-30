@@ -97,11 +97,11 @@ export class PostgresEventStorage implements EventStorage {
           function_path: e.function.path,
           request_id: e.function.request_id,
           function_type: e.function.type,
-          cached: e.function.cached ?? undefined,
+          cached: e.function.cached ?? null,
           log_level: e.log_level,
           message: e.message,
           is_truncated: e.is_truncated,
-          system_code: e.system_code ?? undefined,
+          system_code: e.system_code ?? null,
         }))
       )}
     `;
@@ -118,14 +118,14 @@ export class PostgresEventStorage implements EventStorage {
           function_path: e.function.path,
           request_id: e.function.request_id,
           function_type: e.function.type,
-          cached: e.function.cached ?? undefined,
+          cached: e.function.cached ?? null,
           execution_time_ms: e.execution_time_ms,
           status: e.status,
-          error_message: e.error_message ?? undefined,
-          mutation_queue_length: e.mutation_queue_length ?? undefined,
-          mutation_retry_count: e.mutation_retry_count ?? undefined,
-          occ_info: e.occ_info ? JSON.stringify(e.occ_info) : undefined,
-          scheduler_info: e.scheduler_info ? JSON.stringify(e.scheduler_info) : undefined,
+          error_message: e.error_message ?? null,
+          mutation_queue_length: e.mutation_queue_length ?? null,
+          mutation_retry_count: e.mutation_retry_count ?? null,
+          occ_info: e.occ_info ? JSON.stringify(e.occ_info) : null,
+          scheduler_info: e.scheduler_info ? JSON.stringify(e.scheduler_info) : null,
           usage: JSON.stringify(e.usage),
         }))
       )}
