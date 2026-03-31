@@ -58,9 +58,13 @@ interface LogTableProps {
   logs: LogEntry[];
   selectedKey: string | null;
   onSelect: (key: string | null) => void;
+  sentinelRef: React.RefObject<HTMLDivElement | null>;
+  loadingMore: boolean;
+  hasMore: boolean;
+  total: number;
 }
 
-export function LogTable({ logs, selectedKey, onSelect }: LogTableProps) {
+export function LogTable({ logs, selectedKey, onSelect, sentinelRef, loadingMore, hasMore, total }: LogTableProps) {
   if (logs.length === 0) {
     return (
       <div className="flex items-center justify-center h-full text-muted-foreground">
@@ -70,76 +74,88 @@ export function LogTable({ logs, selectedKey, onSelect }: LogTableProps) {
   }
 
   return (
-    <Table>
-      <TableHeader className="sticky top-0 z-10 bg-background">
-        <TableRow>
-          <TableHead className="w-[180px] pl-6">Timestamp</TableHead>
-          <TableHead className="w-[140px]">Status</TableHead>
-          <TableHead className="w-[200px]">Function</TableHead>
-          <TableHead>Message</TableHead>
-          <TableHead className="w-[120px] pr-6">Request ID</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {logs.map((entry) => {
-          const key = entryKey(entry);
-          return (
-            <TableRow
-              key={key}
-              className={`cursor-pointer hover:bg-muted/50 ${selectedKey === key ? "bg-muted/50" : ""}`}
-              onClick={() => onSelect(selectedKey === key ? null : key)}
-            >
-              <TableCell className="font-mono text-xs whitespace-nowrap pl-6">
-                {format(new Date(entry.timestamp), "yyyy-MM-dd HH:mm:ss.SSS")}
-              </TableCell>
-
-              {/* Status column */}
-              {entry.kind === "console" ? (
-                <TableCell>
-                  <Badge
-                    variant="secondary"
-                    className={levelStyles[entry.log_level] ?? ""}
-                  >
-                    {entry.log_level}
-                  </Badge>
+    <div>
+      <Table>
+        <TableHeader className="sticky top-0 z-10 bg-background">
+          <TableRow>
+            <TableHead className="w-[180px] pl-6">Timestamp</TableHead>
+            <TableHead className="w-[140px]">Status</TableHead>
+            <TableHead className="w-[200px]">Function</TableHead>
+            <TableHead>Message</TableHead>
+            <TableHead className="w-[120px] pr-6">Request ID</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {logs.map((entry) => {
+            const key = entryKey(entry);
+            return (
+              <TableRow
+                key={key}
+                className={`cursor-pointer hover:bg-muted/50 ${selectedKey === key ? "bg-muted/50" : ""}`}
+                onClick={() => onSelect(selectedKey === key ? null : key)}
+              >
+                <TableCell className="font-mono text-xs whitespace-nowrap pl-6">
+                  {format(new Date(entry.timestamp), "yyyy-MM-dd HH:mm:ss.SSS")}
                 </TableCell>
-              ) : (
-                <TableCell className="font-mono text-xs whitespace-nowrap">
-                  <span className={statusStyles[entry.status] ?? ""}>
-                    {entry.status}
-                  </span>
-                  <span className="text-muted-foreground ml-2">
-                    {formatDuration(entry.execution_time_ms)}
+
+                {/* Status column */}
+                {entry.kind === "console" ? (
+                  <TableCell>
+                    <Badge
+                      variant="secondary"
+                      className={levelStyles[entry.log_level] ?? ""}
+                    >
+                      {entry.log_level}
+                    </Badge>
+                  </TableCell>
+                ) : (
+                  <TableCell className="font-mono text-xs whitespace-nowrap">
+                    <span className={statusStyles[entry.status] ?? ""}>
+                      {entry.status}
+                    </span>
+                    <span className="text-muted-foreground ml-2">
+                      {formatDuration(entry.execution_time_ms)}
+                    </span>
+                  </TableCell>
+                )}
+
+                {/* Function column */}
+                <TableCell className="font-mono text-xs">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Badge variant="outline" className="text-xs px-1.5 py-0 font-semibold">
+                      {functionTypeShort[entry.function_type] ?? entry.function_type}
+                    </Badge>
+                    {truncate(entry.function_path, 35)}
                   </span>
                 </TableCell>
-              )}
 
-              {/* Function column */}
-              <TableCell className="font-mono text-xs">
-                <span className="inline-flex items-center gap-1.5">
-                  <Badge variant="outline" className="text-xs px-1.5 py-0 font-semibold">
-                    {functionTypeShort[entry.function_type] ?? entry.function_type}
-                  </Badge>
-                  {truncate(entry.function_path, 35)}
-                </span>
-              </TableCell>
+                {/* Message column */}
+                <TableCell className="font-mono text-sm max-w-md truncate">
+                  {entry.kind === "console"
+                    ? truncate(unquote(entry.message), 120)
+                    : entry.error_message
+                      ? <span className="text-red-400">{truncate(entry.error_message, 120)}</span>
+                      : <span className="text-muted-foreground">--</span>}
+                </TableCell>
 
-              {/* Message column */}
-              <TableCell className="font-mono text-sm max-w-md truncate">
-                {entry.kind === "console"
-                  ? truncate(unquote(entry.message), 120)
-                  : entry.error_message
-                    ? <span className="text-red-400">{truncate(entry.error_message, 120)}</span>
-                    : <span className="text-muted-foreground">--</span>}
-              </TableCell>
-
-              <TableCell className="font-mono text-xs text-muted-foreground pr-6">
-                {truncate(entry.request_id, 12)}
-              </TableCell>
-            </TableRow>
-          );
-        })}
-      </TableBody>
-    </Table>
+                <TableCell className="font-mono text-xs text-muted-foreground pr-6">
+                  {truncate(entry.request_id, 12)}
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+      {/* Scroll sentinel + status */}
+      <div ref={sentinelRef} className="flex items-center justify-center py-4 text-sm text-muted-foreground">
+        {loadingMore ? (
+          "Loading more..."
+        ) : hasMore ? (
+          `${logs.length.toLocaleString()} of ${total.toLocaleString()} logs loaded`
+        ) : (
+          `All ${total.toLocaleString()} logs loaded`
+        )}
+      </div>
+    </div>
   );
 }
