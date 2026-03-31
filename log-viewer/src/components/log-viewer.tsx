@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import type { ConsoleLogRow, FilterOptions, LogFilters } from "@/lib/types";
+import type { LogEntry, FilterOptions, LogFilters } from "@/lib/types";
 import { LogTable } from "./log-table";
 import { LogFilterBar } from "./log-filters";
 import { PaginationControls } from "./pagination-controls";
@@ -14,17 +14,19 @@ interface LogViewerProps {
 }
 
 export function LogViewer({ filterOptions }: LogViewerProps) {
-  const [logs, setLogs] = useState<ConsoleLogRow[]>([]);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
   const [filters, setFilters] = useState<LogFilters>({});
   const [loading, setLoading] = useState(true);
   const [liveTail, setLiveTail] = useState(false);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const selectedLog = selectedId !== null ? logs.find((l) => l.id === selectedId) ?? null : null;
+  const selectedLog = selectedKey !== null
+    ? logs.find((l) => `${l.kind}-${l.id}` === selectedKey) ?? null
+    : null;
 
   const fetchLogs = useCallback(async () => {
     const params = new URLSearchParams();
@@ -117,8 +119,8 @@ export function LogViewer({ filterOptions }: LogViewerProps) {
           ) : (
             <LogTable
               logs={logs}
-              selectedId={selectedId}
-              onSelect={setSelectedId}
+              selectedKey={selectedKey}
+              onSelect={setSelectedKey}
             />
           )}
         </div>
@@ -126,7 +128,7 @@ export function LogViewer({ filterOptions }: LogViewerProps) {
           <div className="w-[400px] shrink-0 border-l bg-background overflow-hidden">
             <LogRowDetail
               log={selectedLog}
-              onClose={() => setSelectedId(null)}
+              onClose={() => setSelectedKey(null)}
             />
           </div>
         )}

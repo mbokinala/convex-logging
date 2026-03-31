@@ -1,6 +1,6 @@
 import { type NextRequest } from "next/server";
 import { cookies } from "next/headers";
-import { queryConsoleLogs } from "@/lib/queries";
+import { queryLogs } from "@/lib/queries";
 import { validateSessionToken, SESSION_COOKIE_NAME } from "@/lib/auth";
 import type { LogFilters } from "@/lib/types";
 
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
   const pageSize = Math.min(100, Math.max(1, parseInt(params.get("pageSize") ?? "50", 10)));
 
   try {
-    const { logs, total } = await queryConsoleLogs(filters, page, pageSize);
+    const { logs, total } = await queryLogs(filters, page, pageSize);
     return Response.json({ logs, total, page, pageSize });
   } catch (error) {
     console.error("Failed to query logs:", error);
