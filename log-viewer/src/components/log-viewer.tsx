@@ -6,6 +6,7 @@ import { LogTable } from "./log-table";
 import { LogFilterBar } from "./log-filters";
 import { PaginationControls } from "./pagination-controls";
 import { LiveTailToggle } from "./live-tail-toggle";
+import { LogRowDetail } from "./log-row-detail";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface LogViewerProps {
@@ -20,7 +21,10 @@ export function LogViewer({ filterOptions }: LogViewerProps) {
   const [filters, setFilters] = useState<LogFilters>({});
   const [loading, setLoading] = useState(true);
   const [liveTail, setLiveTail] = useState(false);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const selectedLog = selectedId !== null ? logs.find((l) => l.id === selectedId) ?? null : null;
 
   const fetchLogs = useCallback(async () => {
     const params = new URLSearchParams();
@@ -102,15 +106,29 @@ export function LogViewer({ filterOptions }: LogViewerProps) {
         />
         <LiveTailToggle enabled={liveTail} onToggle={handleLiveTailToggle} />
       </div>
-      <div className="flex-1 overflow-auto">
-        {loading ? (
-          <div className="p-6 space-y-3">
-            {Array.from({ length: 10 }).map((_, i) => (
-              <Skeleton key={i} className="h-8 w-full" />
-            ))}
+      <div className="flex flex-1 min-h-0">
+        <div className="flex-1 overflow-auto">
+          {loading ? (
+            <div className="p-6 space-y-3">
+              {Array.from({ length: 10 }).map((_, i) => (
+                <Skeleton key={i} className="h-8 w-full" />
+              ))}
+            </div>
+          ) : (
+            <LogTable
+              logs={logs}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+            />
+          )}
+        </div>
+        {selectedLog && (
+          <div className="w-[400px] shrink-0 border-l bg-background overflow-hidden">
+            <LogRowDetail
+              log={selectedLog}
+              onClose={() => setSelectedId(null)}
+            />
           </div>
-        ) : (
-          <LogTable logs={logs} />
         )}
       </div>
       <div className="border-t px-6 py-3 shrink-0">

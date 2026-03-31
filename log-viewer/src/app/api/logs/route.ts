@@ -1,10 +1,17 @@
 import { type NextRequest } from "next/server";
+import { cookies } from "next/headers";
 import { queryConsoleLogs } from "@/lib/queries";
+import { validateSessionToken, SESSION_COOKIE_NAME } from "@/lib/auth";
 import type { LogFilters } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  if (!token || !validateSessionToken(token)) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const params = request.nextUrl.searchParams;
 
   const filters: LogFilters = {};

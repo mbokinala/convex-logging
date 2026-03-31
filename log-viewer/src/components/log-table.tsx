@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import {
   Table,
   TableBody,
@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import type { ConsoleLogRow } from "@/lib/types";
-import { LogRowDetail } from "./log-row-detail";
 import { format } from "date-fns";
 
 const levelStyles: Record<string, string> = {
@@ -22,13 +21,24 @@ const levelStyles: Record<string, string> = {
   ERROR: "bg-red-500/10 text-red-400 hover:bg-red-500/20",
 };
 
+export function unquote(str: string) {
+  if (str.length >= 2 && str.startsWith('"') && str.endsWith('"')) {
+    return str.slice(1, -1);
+  }
+  return str;
+}
+
 function truncate(str: string, max: number) {
   return str.length > max ? str.slice(0, max) + "..." : str;
 }
 
-export function LogTable({ logs }: { logs: ConsoleLogRow[] }) {
-  const [expandedId, setExpandedId] = useState<number | null>(null);
+interface LogTableProps {
+  logs: ConsoleLogRow[];
+  selectedId: number | null;
+  onSelect: (id: number | null) => void;
+}
 
+export function LogTable({ logs, selectedId, onSelect }: LogTableProps) {
   if (logs.length === 0) {
     return (
       <div className="flex items-center justify-center h-full text-muted-foreground">
@@ -51,47 +61,37 @@ export function LogTable({ logs }: { logs: ConsoleLogRow[] }) {
       </TableHeader>
       <TableBody>
         {logs.map((log) => (
-          <React.Fragment key={log.id}>
-            <TableRow
-              className="cursor-pointer hover:bg-muted/50"
-              onClick={() =>
-                setExpandedId(expandedId === log.id ? null : log.id)
-              }
-            >
-              <TableCell className="font-mono text-xs whitespace-nowrap pl-6">
-                {format(new Date(log.timestamp), "yyyy-MM-dd HH:mm:ss.SSS")}
-              </TableCell>
-              <TableCell>
-                <Badge
-                  variant="secondary"
-                  className={levelStyles[log.log_level] ?? ""}
-                >
-                  {log.log_level}
-                </Badge>
-              </TableCell>
-              <TableCell className="font-mono text-xs">
-                {truncate(log.function_path, 40)}
-              </TableCell>
-              <TableCell>
-                <Badge variant="outline" className="text-xs">
-                  {log.function_type}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-sm max-w-md truncate">
-                {truncate(log.message, 120)}
-              </TableCell>
-              <TableCell className="font-mono text-xs text-muted-foreground pr-6">
-                {truncate(log.request_id, 12)}
-              </TableCell>
-            </TableRow>
-            {expandedId === log.id && (
-              <TableRow>
-                <TableCell colSpan={6} className="p-0">
-                  <LogRowDetail log={log} />
-                </TableCell>
-              </TableRow>
-            )}
-          </React.Fragment>
+          <TableRow
+            key={log.id}
+            className={`cursor-pointer hover:bg-muted/50 ${selectedId === log.id ? "bg-muted/50" : ""}`}
+            onClick={() => onSelect(selectedId === log.id ? null : log.id)}
+          >
+            <TableCell className="font-mono text-xs whitespace-nowrap pl-6">
+              {format(new Date(log.timestamp), "yyyy-MM-dd HH:mm:ss.SSS")}
+            </TableCell>
+            <TableCell>
+              <Badge
+                variant="secondary"
+                className={levelStyles[log.log_level] ?? ""}
+              >
+                {log.log_level}
+              </Badge>
+            </TableCell>
+            <TableCell className="font-mono text-xs">
+              {truncate(log.function_path, 40)}
+            </TableCell>
+            <TableCell>
+              <Badge variant="outline" className="text-xs">
+                {log.function_type}
+              </Badge>
+            </TableCell>
+            <TableCell className="font-mono text-sm max-w-md truncate">
+              {truncate(unquote(log.message), 120)}
+            </TableCell>
+            <TableCell className="font-mono text-xs text-muted-foreground pr-6">
+              {truncate(log.request_id, 12)}
+            </TableCell>
+          </TableRow>
         ))}
       </TableBody>
     </Table>
