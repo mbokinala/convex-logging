@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Table,
   TableBody,
@@ -39,27 +39,26 @@ export function LogTable({ logs }: { logs: ConsoleLogRow[] }) {
 
   return (
     <Table>
-      <TableHeader>
+      <TableHeader className="sticky top-0 z-10 bg-background">
         <TableRow>
-          <TableHead className="w-[180px]">Timestamp</TableHead>
+          <TableHead className="w-[180px] pl-6">Timestamp</TableHead>
           <TableHead className="w-[80px]">Level</TableHead>
           <TableHead className="w-[200px]">Function</TableHead>
           <TableHead className="w-[100px]">Type</TableHead>
           <TableHead>Message</TableHead>
-          <TableHead className="w-[120px]">Request ID</TableHead>
+          <TableHead className="w-[120px] pr-6">Request ID</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {logs.map((log) => (
-          <>
+          <React.Fragment key={log.id}>
             <TableRow
-              key={log.id}
               className="cursor-pointer hover:bg-muted/50"
               onClick={() =>
                 setExpandedId(expandedId === log.id ? null : log.id)
               }
             >
-              <TableCell className="font-mono text-xs whitespace-nowrap">
+              <TableCell className="font-mono text-xs whitespace-nowrap pl-6">
                 {format(new Date(log.timestamp), "yyyy-MM-dd HH:mm:ss.SSS")}
               </TableCell>
               <TableCell>
@@ -81,18 +80,18 @@ export function LogTable({ logs }: { logs: ConsoleLogRow[] }) {
               <TableCell className="text-sm max-w-md truncate">
                 {truncate(log.message, 120)}
               </TableCell>
-              <TableCell className="font-mono text-xs text-muted-foreground">
+              <TableCell className="font-mono text-xs text-muted-foreground pr-6">
                 {truncate(log.request_id, 12)}
               </TableCell>
             </TableRow>
             {expandedId === log.id && (
-              <TableRow key={`${log.id}-detail`}>
+              <TableRow>
                 <TableCell colSpan={6} className="p-0">
                   <LogRowDetail log={log} />
                 </TableCell>
               </TableRow>
             )}
-          </>
+          </React.Fragment>
         ))}
       </TableBody>
     </Table>
